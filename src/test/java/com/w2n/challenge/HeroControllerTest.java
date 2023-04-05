@@ -1,5 +1,6 @@
 package com.w2n.challenge;
 
+import com.w2n.challenge.exceptions.ExceptionMessages;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,26 @@ public class HeroControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
                 .andExpect(jsonPath("$.content").isArray())
+                .andDo(print());
+    }
+
+    @Test
+    public void getHeroById() throws Exception {
+        mockMvc.perform(get("/heroes/1").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.name").isString())
+                .andDo(print());
+    }
+
+    @Test
+    public void getHeroByIdAndNotFound() throws Exception {
+        mockMvc.perform(get("/heroes/9999").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_NOT_FOUND))
                 .andDo(print());
     }
 }

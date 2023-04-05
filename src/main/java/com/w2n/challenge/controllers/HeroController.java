@@ -7,9 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/heroes")
 @CrossOrigin(origins = "*", methods = RequestMethod.GET)
@@ -32,5 +29,10 @@ public class HeroController {
                         PageableUtils.PageableOf(pageNumber, pageSize, orderCriteria, "name")
                 )
         );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<HeroResponseDTO> getHeroById(@PathVariable int id) {
+        return ResponseEntity.ok(heroService.getHeroById(id));
     }
 }

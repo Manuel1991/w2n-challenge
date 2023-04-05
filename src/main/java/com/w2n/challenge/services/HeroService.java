@@ -3,6 +3,8 @@ package com.w2n.challenge.services;
 import com.w2n.challenge.domain.dtos.HeroResponseDTO;
 import com.w2n.challenge.domain.mappers.HeroMapper;
 import com.w2n.challenge.domain.repositories.HeroRepository;
+import com.w2n.challenge.exceptions.ExceptionMessages;
+import com.w2n.challenge.exceptions.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,5 +24,12 @@ public class HeroService {
         return heroRepository
                 .findAll(pageable)
                 .map(heroMapper::map);
+    }
+
+    public HeroResponseDTO getHeroById(int id) {
+        return heroRepository
+                .findById(id)
+                .map(heroMapper::map)
+                .orElseThrow(() -> new NotFoundException(ExceptionMessages.HERO_NOT_FOUND));
     }
 }
