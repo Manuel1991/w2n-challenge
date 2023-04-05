@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class HeroService {
 
@@ -26,7 +28,7 @@ public class HeroService {
                 .map(heroMapper::map);
     }
 
-    public HeroResponseDTO getHeroById(int id) {
+    public HeroResponseDTO getHeroById(UUID id) {
         return heroRepository
                 .findById(id)
                 .map(heroMapper::map)

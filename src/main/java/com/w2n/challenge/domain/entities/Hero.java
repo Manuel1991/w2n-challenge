@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Entity
 @NoArgsConstructor
@@ -13,8 +15,12 @@ import lombok.NoArgsConstructor;
 public class Hero {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private UUID id;
 
     private String name;
+
+    private String universe;
+
+    private Integer firstApparition;
 }

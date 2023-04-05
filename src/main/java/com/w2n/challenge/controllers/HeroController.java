@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/heroes")
 @CrossOrigin(origins = "*", methods = RequestMethod.GET)
@@ -32,7 +34,7 @@ public class HeroController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<HeroResponseDTO> getHeroById(@PathVariable int id) {
+    public ResponseEntity<HeroResponseDTO> getHeroById(@PathVariable UUID id) {
         return ResponseEntity.ok(heroService.getHeroById(id));
     }
 }

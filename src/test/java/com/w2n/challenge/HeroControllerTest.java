@@ -28,7 +28,7 @@ public class HeroControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    public void getHeroAllHeroes() throws Exception {
+    public void getAllHeroes() throws Exception {
         mockMvc.perform(get("/heroes").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -39,7 +39,7 @@ public class HeroControllerTest {
 
     @Test
     public void getHeroById() throws Exception {
-        mockMvc.perform(get("/heroes/1").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/heroes/29c9d9ed-2742-47b2-b29c-6f5f5c65d5d5").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -49,7 +49,7 @@ public class HeroControllerTest {
 
     @Test
     public void getHeroByIdAndNotFound() throws Exception {
-        mockMvc.perform(get("/heroes/9999").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/heroes/1ee0aa91-ee67-481c-8140-85d73df0a145").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
