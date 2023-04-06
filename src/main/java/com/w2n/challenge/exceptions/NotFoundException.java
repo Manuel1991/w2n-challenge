@@ -1,14 +1,9 @@
 package com.w2n.challenge.exceptions;
 
-import lombok.Getter;
+public class NotFoundException extends ApiException {
 
-@Getter
-public class NotFoundException extends RuntimeException {
-
-    private final String message;
 
     public NotFoundException(String message) {
-        this.message = message;
+        super(message);
     }
-
 }

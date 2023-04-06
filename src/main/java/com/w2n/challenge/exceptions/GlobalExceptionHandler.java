@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiExceptionResponse> notFoundExceptionHandler(BadRequestException exception) {
+        return this.registerException(exception, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiExceptionResponse> notFoundExceptionHandler(NotFoundException exception) {
-        return this.registerException(
-                exception,
-                HttpStatus.NOT_FOUND
-        );
+        return this.registerException(exception, HttpStatus.NOT_FOUND);
     }
 
     private ResponseEntity<ApiExceptionResponse> registerException(
