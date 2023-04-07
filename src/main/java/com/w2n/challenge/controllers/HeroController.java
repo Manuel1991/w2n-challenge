@@ -56,6 +56,16 @@ public class HeroController {
                 .body(heroService.createHero(newHeroDTO));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<HeroResponseDTO> updateHero(
+            @PathVariable UUID id,
+            @RequestBody NewHeroDTO heroDTO
+    ) {
+        return ResponseEntity.ok(
+                heroService.updateHero(id, heroDTO)
+        );
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<HeroResponseDTO> deleteHero(@PathVariable UUID id) {
         heroService.deleteHero(id);

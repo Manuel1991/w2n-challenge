@@ -58,10 +58,31 @@ public class HeroService {
             throw new BadRequestException(ExceptionMessages.HERO_ALREADY_EXISTS);
 
         Hero hero = Hero.builder()
-                .name(newHeroDTO.getName())
-                .universe(newHeroDTO.getUniverse())
+                .name(newHeroDTO.getName().trim())
+                .universe(newHeroDTO.getUniverse().trim())
                 .firstApparition(newHeroDTO.getFirstApparition())
                 .build();
+
+        heroRepository.save(hero);
+
+        return heroMapper.map(hero);
+    }
+
+    public HeroResponseDTO updateHero(UUID id, NewHeroDTO heroDTO) {
+
+        validate(heroDTO);
+
+        Hero hero = heroRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException(ExceptionMessages.HERO_NOT_FOUND));
+
+        if (!heroDTO.getName().trim().equalsIgnoreCase(hero.getName().trim()) &&
+                heroRepository.existsByNameIgnoreCase(heroDTO.getName().trim()))
+            throw new BadRequestException(ExceptionMessages.HERO_ALREADY_EXISTS);
+
+        hero.setName(heroDTO.getName());
+        hero.setUniverse(heroDTO.getUniverse());
+        hero.setFirstApparition(heroDTO.getFirstApparition());
 
         heroRepository.save(hero);
 

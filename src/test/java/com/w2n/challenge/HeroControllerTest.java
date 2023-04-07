@@ -14,6 +14,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +35,10 @@ public class HeroControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private final String hulk_ID = "29c9d9ed-2742-47b2-b29c-6f5f5c65d5d5";
+
     @Test
     public void getAllHeroes() throws Exception {
         mockMvc.perform(get("/heroes"))
@@ -46,7 +51,8 @@ public class HeroControllerTest {
 
     @Test
     public void getHeroById() throws Exception {
-        mockMvc.perform(get("/heroes/29c9d9ed-2742-47b2-b29c-6f5f5c65d5d5"))
+
+        mockMvc.perform(get(String.format("/heroes/%s", hulk_ID)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -99,32 +105,83 @@ public class HeroControllerTest {
     }
 
     @Test
-    public void createHeroAndDelete() throws Exception {
+    public void createHeroAndUpdateAndDelete() throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        String requestBody = mapper.writeValueAsString(NewHeroDTO
+        NewHeroDTO heroDTO = NewHeroDTO
                 .builder()
                 .name(String.format("Test Hero %s", UUID.randomUUID()))
-                .universe("UUID Universe")
+                .universe(String.format("Universe %s", UUID.randomUUID()))
                 .firstApparition(1979)
-                .build());
+                .build();
 
-        String stringResponse = mockMvc.perform(post("/heroes")
+        //CREATE
+        String stringCreateResponse = mockMvc.perform(post("/heroes")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+                        .content(mapper.writeValueAsString(heroDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.id").isString())
+                .andExpect(jsonPath("$.name").value(heroDTO.getName()))
+                .andExpect(jsonPath("$.universe").value(heroDTO.getUniverse()))
+                .andExpect(jsonPath("$.firstApparition").value(heroDTO.getFirstApparition()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        String id = mapper.readTree(stringResponse).get("id").asText();
+        String id = mapper.readTree(stringCreateResponse).get("id").asText();
 
+        heroDTO = NewHeroDTO
+                .builder()
+                .name(String.format("Test Hero %s", UUID.randomUUID()))
+                .universe(String.format("Universe %s", UUID.randomUUID()))
+                .firstApparition(LocalDate.now().getYear())
+                .build();
+
+        //UPDATE
+        mockMvc.perform(put(String.format("/heroes/%s", id))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(heroDTO)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.name").value(heroDTO.getName()))
+                .andExpect(jsonPath("$.universe").value(heroDTO.getUniverse()))
+                .andExpect(jsonPath("$.firstApparition").value(heroDTO.getFirstApparition()));
+
+        //DELETE
         mockMvc.perform(delete(String.format("/heroes/%s", id)))
                 .andExpect(status().isNoContent());
+
+        //GET AND VERIFY THAT HERO DOESN'T EXIST
+        mockMvc.perform(get(String.format("/heroes/%s", id)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_NOT_FOUND));
+    }
+
+    @Test
+    public void updateHeroWithNameAlreadyExists() throws Exception {
+
+        NewHeroDTO heroDTO = NewHeroDTO
+                .builder()
+                .name("Superman")
+                .universe("DC")
+                .firstApparition(1939)
+                .build();
+
+        mockMvc.perform(put(String.format("/heroes/%s", hulk_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(heroDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_ALREADY_EXISTS));
+
     }
 }
