@@ -68,6 +68,14 @@ public class HeroService {
         return heroMapper.map(hero);
     }
 
+    public void deleteHero(UUID id) {
+
+        if (!heroRepository.existsById(id))
+            throw new BadRequestException(ExceptionMessages.HERO_NOT_FOUND);
+
+        heroRepository.deleteById(id);
+    }
+
     private void validate(NewHeroDTO newHeroDTO) {
 
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();

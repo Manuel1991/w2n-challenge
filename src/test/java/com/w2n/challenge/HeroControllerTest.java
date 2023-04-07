@@ -1,10 +1,7 @@
 package com.w2n.challenge;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.w2n.challenge.domain.dtos.HeroResponseDTO;
 import com.w2n.challenge.domain.dtos.NewHeroDTO;
 import com.w2n.challenge.exceptions.ExceptionMessages;
 import org.junit.Test;
@@ -16,14 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -65,7 +60,7 @@ public class HeroControllerTest {
     public void getHeroesByName() throws Exception {
 
         //enter lower case
-        String filterName = "am";
+        String filterName = "aqua";
 
         String stringResponse = mockMvc.perform(
                         get(String.format("/heroes?name=%s", filterName))
@@ -104,27 +99,32 @@ public class HeroControllerTest {
     }
 
     @Test
-    public void createHero() throws Exception {
+    public void createHeroAndDelete() throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        NewHeroDTO newHeroDTO = NewHeroDTO
+        String requestBody = mapper.writeValueAsString(NewHeroDTO
                 .builder()
                 .name(String.format("Test Hero %s", UUID.randomUUID()))
                 .universe("UUID Universe")
                 .firstApparition(1979)
-                .build();
+                .build());
 
-        String requestBody = mapper.writeValueAsString(newHeroDTO);
-
-        mockMvc.perform(post("/heroes")
+        String stringResponse = mockMvc.perform(post("/heroes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.name").isNotEmpty())
-                .andExpect(jsonPath("$.name").isString())
-                .andExpect(jsonPath("$.name").value(newHeroDTO.getName()));
+                .andExpect(jsonPath("$.id").isNotEmpty())
+                .andExpect(jsonPath("$.id").isString())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String id = mapper.readTree(stringResponse).get("id").asText();
+
+        mockMvc.perform(delete(String.format("/heroes/%s", id)))
+                .andExpect(status().isNoContent());
     }
 }

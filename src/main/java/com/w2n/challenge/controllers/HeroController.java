@@ -55,4 +55,10 @@ public class HeroController {
                 .status(HttpStatus.CREATED)
                 .body(heroService.createHero(newHeroDTO));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<HeroResponseDTO> deleteHero(@PathVariable UUID id) {
+        heroService.deleteHero(id);
+        return ResponseEntity.noContent().build();
+    }
 }
