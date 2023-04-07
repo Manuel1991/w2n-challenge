@@ -37,6 +37,12 @@ public class HeroService {
                 .map(heroMapper::map);
     }
 
+    public Page<HeroResponseDTO> getHeroesByName(Pageable pageable, String name) {
+        return heroRepository
+                .findByNameContainingIgnoreCase(pageable, name)
+                .map(heroMapper::map);
+    }
+
     public HeroResponseDTO getHeroById(UUID id) {
         return heroRepository
                 .findById(id)

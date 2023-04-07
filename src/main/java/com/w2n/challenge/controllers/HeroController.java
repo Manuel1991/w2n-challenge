@@ -5,10 +5,12 @@ import com.w2n.challenge.domain.dtos.HeroResponseDTO;
 import com.w2n.challenge.domain.dtos.NewHeroDTO;
 import com.w2n.challenge.services.HeroService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -26,13 +28,18 @@ public class HeroController {
     public ResponseEntity<Page<HeroResponseDTO>> getAllHeroes(
             @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "ASC") String orderCriteria
+            @RequestParam(defaultValue = "ASC") String orderCriteria,
+            @RequestParam(required = false) String name
     ) {
-        return ResponseEntity.ok(
-                heroService.getAllHeroes(
-                        PageableUtils.PageableOf(pageNumber, pageSize, orderCriteria, "name")
-                )
-        );
+        Pageable pageable = PageableUtils.PageableOf(pageNumber, pageSize, orderCriteria, "name");
+
+        Page<HeroResponseDTO> heroes = Optional
+                .ofNullable(name)
+                .filter(n -> !n.isBlank())
+                .map(n -> heroService.getHeroesByName(pageable, n))
+                .orElseGet(() -> heroService.getAllHeroes(pageable));
+
+        return ResponseEntity.ok(heroes);
     }
 
     @GetMapping("/{id}")
@@ -43,7 +50,7 @@ public class HeroController {
     @PostMapping
     public ResponseEntity<HeroResponseDTO> createHero(
             @RequestBody NewHeroDTO newHeroDTO
-    ){
+    ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(heroService.createHero(newHeroDTO));

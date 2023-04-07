@@ -1,6 +1,10 @@
 package com.w2n.challenge;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.w2n.challenge.domain.dtos.HeroResponseDTO;
 import com.w2n.challenge.domain.dtos.NewHeroDTO;
 import com.w2n.challenge.exceptions.ExceptionMessages;
 import org.junit.Test;
@@ -12,7 +16,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -52,6 +59,39 @@ public class HeroControllerTest {
                 .andExpect(jsonPath("$.name").isString())
                 .andExpect(jsonPath("$.name").value("Hulk"))
                 .andDo(print());
+    }
+
+    @Test
+    public void getHeroesByName() throws Exception {
+
+        //enter lower case
+        String filterName = "am";
+
+        String stringResponse = mockMvc.perform(
+                        get(String.format("/heroes?name=%s", filterName))
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.content").isNotEmpty())
+                .andExpect(jsonPath("$.content").isArray())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        List<String> namesHeroes = new ArrayList<>();
+
+        ((ArrayNode) new ObjectMapper()
+                .readTree(stringResponse)
+                .get("content"))
+                .forEach(jh -> namesHeroes.add(jh.get("name").asText("")));
+
+        if (!namesHeroes
+                .stream()
+                .map(String::toLowerCase)
+                .allMatch(n -> n.contains(filterName))) {
+            throw new RuntimeException("failed getHeroesByName");
+        }
     }
 
     @Test
