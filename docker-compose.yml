@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  w2n-service:
+    build: .
+    environment:
+        PORT: 8888
+        DB_URL: "jdbc:h2:tcp://w2n-db/my-db-name"
+        DB_USERNAME:
+        DB_PASSWORD:
+    ports:
+      - "8888:8888"
+    depends_on:
+      - w2n-db
+  w2n-db:
+    image: "buildo/h2database"
+    ports:
+      - "8082:8082"
