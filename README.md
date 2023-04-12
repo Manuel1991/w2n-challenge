@@ -2,6 +2,8 @@
 
 This a sample API-REST about heroes
 
+[You can see the collection online by clicking here](https://documenter.getpostman.com/view/8321505/2s93XvWQq4)
+
 ## Requisites
 
 - [Java 17](https://www.oracle.com/java/technologies/downloads/#java17)
