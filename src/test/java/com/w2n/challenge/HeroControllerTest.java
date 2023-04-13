@@ -34,10 +34,7 @@ public class HeroControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     private final ObjectMapper mapper = new ObjectMapper();
-
-    private final String hulk_ID = "29c9d9ed-2742-47b2-b29c-6f5f5c65d5d5";
 
     @Test
     public void getAllHeroes() throws Exception {
@@ -45,28 +42,140 @@ public class HeroControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.content").isArray())
-                .andDo(print());
+                .andExpect(jsonPath("$.content").isArray());
     }
 
     @Test
-    public void getHeroById() throws Exception {
+    public void getHeroByIdAndNotFound() throws Exception {
+        _getHeroByIdAndNotFound(UUID.randomUUID().toString());
+    }
 
-        mockMvc.perform(get(String.format("/heroes/%s", hulk_ID)))
+    @Test
+    public void createAndGetById() throws Exception {
+
+        NewHeroDTO heroDTO = getRandomNewHero();
+
+        String id = _create(heroDTO);
+
+        _getHeroesById(id, heroDTO);
+        _delete(id);
+    }
+
+    @Test
+    public void createAndGetByName() throws Exception {
+
+        NewHeroDTO heroDTO = getRandomNewHero();
+
+        String id = _create(heroDTO);
+
+        _getHeroesByName(heroDTO.getName());
+        _delete(id);
+    }
+
+    @Test
+    public void createAndUpdateAndDelete() throws Exception {
+
+        //CREATE
+        NewHeroDTO heroDTO = getRandomNewHero();
+
+        String id = _create(heroDTO);
+
+        //UPDATE
+        heroDTO = getRandomNewHero();
+
+        mockMvc.perform(put(String.format("/heroes/%s", id))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(heroDTO)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.name").isNotEmpty())
-                .andExpect(jsonPath("$.name").isString())
-                .andExpect(jsonPath("$.name").value("Hulk"))
-                .andDo(print());
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.name").value(heroDTO.getName()))
+                .andExpect(jsonPath("$.universe").value(heroDTO.getUniverse()))
+                .andExpect(jsonPath("$.firstApparition").value(heroDTO.getFirstApparition()));
+
+        //DELETE
+        _deleteAndVerifyNotFound(id);
     }
 
     @Test
-    public void getHeroesByName() throws Exception {
+    public void createWithNameAlreadyExists() throws Exception {
 
-        //enter lower case
-        String filterName = "aqua";
+        NewHeroDTO heroA = getRandomNewHero();
+
+        NewHeroDTO heroB = NewHeroDTO.builder()
+                .name(heroA.getName())
+                .universe(heroA.getUniverse())
+                .build();
+
+        //CREATE heroA and get id
+        String id_heroA = _create(heroA);
+
+        //TRY TO CREATE heroB
+        mockMvc.perform(post("/heroes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(heroB)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_ALREADY_EXISTS));
+
+        //DELETE heroA
+        _deleteAndVerifyNotFound(id_heroA);
+    }
+
+    @Test
+    public void updateWithNameAlreadyExists() throws Exception {
+
+        NewHeroDTO heroA = getRandomNewHero(),
+                heroB = getRandomNewHero();
+
+        String id_heroA = _create(heroA);
+        String id_heroB = _create(heroB);
+
+        heroB.setName(heroA.getName());
+
+        mockMvc.perform(put(String.format("/heroes/%s", id_heroB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(heroB)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_ALREADY_EXISTS));
+
+        //DELETE heroA and heroB
+        _deleteAndVerifyNotFound(id_heroA);
+        _deleteAndVerifyNotFound(id_heroB);
+    }
+
+    private NewHeroDTO getRandomNewHero() {
+        return NewHeroDTO
+                .builder()
+                .name(String.format("Test Hero %s", UUID.randomUUID()))
+                .universe(String.format("Universe %s", UUID.randomUUID()))
+                .firstApparition(LocalDate.now().getYear())
+                .build();
+    }
+
+    private void _getHeroesById(String id, NewHeroDTO heroDTO) throws Exception {
+        mockMvc.perform(get(String.format("/heroes/%s", id)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.name").value(heroDTO.getName()))
+                .andExpect(jsonPath("$.universe").value(heroDTO.getUniverse()))
+                .andExpect(jsonPath("$.firstApparition").value(heroDTO.getFirstApparition()));
+    }
+
+    private void _getHeroByIdAndNotFound(String id) throws Exception {
+        mockMvc.perform(get(String.format("/heroes/%s", id)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_NOT_FOUND));
+    }
+
+    private void _getHeroesByName(String filterName) throws Exception {
 
         String stringResponse = mockMvc.perform(
                         get(String.format("/heroes?name=%s", filterName))
@@ -90,34 +199,14 @@ public class HeroControllerTest {
         if (!namesHeroes
                 .stream()
                 .map(String::toLowerCase)
-                .allMatch(n -> n.contains(filterName))) {
-            throw new RuntimeException("failed getHeroesByName");
+                .allMatch(n -> n.contains(filterName.toLowerCase()))) {
+            throw new RuntimeException("failed get_heroes_by_name");
         }
     }
 
-    @Test
-    public void getHeroByIdAndNotFound() throws Exception {
-        mockMvc.perform(get(String.format("/heroes/%s", UUID.randomUUID())))
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_NOT_FOUND));
-    }
+    private String _create(NewHeroDTO heroDTO) throws Exception {
 
-    @Test
-    public void createHeroAndUpdateAndDelete() throws Exception {
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        NewHeroDTO heroDTO = NewHeroDTO
-                .builder()
-                .name(String.format("Test Hero %s", UUID.randomUUID()))
-                .universe(String.format("Universe %s", UUID.randomUUID()))
-                .firstApparition(1979)
-                .build();
-
-        //CREATE
-        String stringCreateResponse = mockMvc.perform(post("/heroes")
+        String stringResponse = mockMvc.perform(post("/heroes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(heroDTO)))
                 .andExpect(status().isCreated())
@@ -132,56 +221,17 @@ public class HeroControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        String id = mapper.readTree(stringCreateResponse).get("id").asText();
-
-        heroDTO = NewHeroDTO
-                .builder()
-                .name(String.format("Test Hero %s", UUID.randomUUID()))
-                .universe(String.format("Universe %s", UUID.randomUUID()))
-                .firstApparition(LocalDate.now().getYear())
-                .build();
-
-        //UPDATE
-        mockMvc.perform(put(String.format("/heroes/%s", id))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(heroDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.name").value(heroDTO.getName()))
-                .andExpect(jsonPath("$.universe").value(heroDTO.getUniverse()))
-                .andExpect(jsonPath("$.firstApparition").value(heroDTO.getFirstApparition()));
-
-        //DELETE
-        mockMvc.perform(delete(String.format("/heroes/%s", id)))
-                .andExpect(status().isNoContent());
-
-        //GET AND VERIFY THAT HERO DOESN'T EXIST
-        mockMvc.perform(get(String.format("/heroes/%s", id)))
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_NOT_FOUND));
+        return mapper.readTree(stringResponse).get("id").asText();
     }
 
-    @Test
-    public void updateHeroWithNameAlreadyExists() throws Exception {
+    private void _delete(String id) throws Exception {
+        mockMvc.perform(delete(String.format("/heroes/%s", id))).andExpect(status().isNoContent());
+    }
 
-        NewHeroDTO heroDTO = NewHeroDTO
-                .builder()
-                .name("Superman")
-                .universe("DC")
-                .firstApparition(1939)
-                .build();
-
-        mockMvc.perform(put(String.format("/heroes/%s", hulk_ID))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(heroDTO)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.message").value(ExceptionMessages.HERO_ALREADY_EXISTS));
-
+    private void _deleteAndVerifyNotFound(String id) throws Exception {
+        //DELETE
+        _delete(id);
+        //GET AND VERIFY THAT HERO DOESN'T EXIST
+        _getHeroByIdAndNotFound(id);
     }
 }
