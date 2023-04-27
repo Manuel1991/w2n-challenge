@@ -100,11 +100,6 @@
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>4.17.0</version>
-                <configuration>
-                    <!--set values for Liquibase properties and settings
-                    for example, the location of a properties file to use-->
-                    <propertyFile>src/main/resources/db/liquibase.properties</propertyFile>
-                </configuration>
                 <dependencies>
                     <!--set up any dependencies for Liquibase to function in your environment for example, a database-specific plugin-->
                     <dependency>

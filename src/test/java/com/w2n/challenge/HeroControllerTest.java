@@ -1,7 +1,6 @@
 package com.w2n.challenge;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.w2n.challenge.domain.dtos.NewHeroDTO;
 import com.w2n.challenge.exceptions.ExceptionMessages;
 import org.junit.Test;
@@ -20,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -29,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         classes = W2nChallengeApplication.class)
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application.test.properties")
+@TestPropertySource(locations = "classpath:application.yml")
 public class HeroControllerTest {
 
     @Autowired
@@ -191,9 +189,9 @@ public class HeroControllerTest {
 
         List<String> namesHeroes = new ArrayList<>();
 
-        ((ArrayNode) new ObjectMapper()
+        new ObjectMapper()
                 .readTree(stringResponse)
-                .get("content"))
+                .get("content")
                 .forEach(jh -> namesHeroes.add(jh.get("name").asText("")));
 
         if (!namesHeroes
