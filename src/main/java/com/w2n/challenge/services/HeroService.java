@@ -45,7 +45,7 @@ public class HeroService {
 
     public HeroResponseDTO getHeroById(UUID id) {
         return heroRepository
-                .findById(id)
+                .findById(id.toString())
                 .map(heroMapper::map)
                 .orElseThrow(() -> new NotFoundException(ExceptionMessages.HERO_NOT_FOUND));
     }
@@ -73,7 +73,7 @@ public class HeroService {
         validate(heroDTO);
 
         Hero hero = heroRepository
-                .findById(id)
+                .findById(id.toString())
                 .orElseThrow(() -> new NotFoundException(ExceptionMessages.HERO_NOT_FOUND));
 
         if (!heroDTO.getName().trim().equalsIgnoreCase(hero.getName().trim()) &&
@@ -91,10 +91,10 @@ public class HeroService {
 
     public void deleteHero(UUID id) {
 
-        if (!heroRepository.existsById(id))
+        if (!heroRepository.existsById(id.toString()))
             throw new BadRequestException(ExceptionMessages.HERO_NOT_FOUND);
 
-        heroRepository.deleteById(id);
+        heroRepository.deleteById(id.toString());
     }
 
     private void validate(NewHeroDTO newHeroDTO) {

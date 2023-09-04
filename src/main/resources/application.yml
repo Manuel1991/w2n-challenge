@@ -5,12 +5,20 @@ spring:
     name: w2n-challenge-service
   datasource:
     url: ${DB_URL}
-    username: ${DB_USERNAME}
+    username: ${DB_USER}
     password: ${DB_PASSWORD}
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      javax:
+        persistence:
+          schema-generation:
+            scripts:
+              action: none
+              create-source: metadata
+              create-target: src/main/resources/db/changelog/changes/db.quickstart.mysql.sql
   liquibase:
+    enabled: true
     url: ${DB_URL}
-    user: ${DB_USERNAME}
+    user: ${DB_USER}
     password: ${DB_PASSWORD}
-    change-log: classpath:db/changelog/changelog.yaml

@@ -1,18 +1,24 @@
 version: '3'
 
 services:
-  w2n-service:
+  heroes_db:
+    image: mysql:8
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: "heroes_db"
+  heroes_service:
     build: .
     environment:
         PORT: 8888
-        DB_URL: "jdbc:h2:tcp://w2n-db/my-db-name"
-        DB_USERNAME:
-        DB_PASSWORD:
+        DB_URL: "jdbc:mysql://heroes_db/heroes_db"
+        DB_USER: ${DB_USER}
+        DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8888:8888"
     depends_on:
-      - w2n-db
-  w2n-db:
-    image: "buildo/h2database"
-    ports:
-      - "8082:8082"
+      - heroes_db

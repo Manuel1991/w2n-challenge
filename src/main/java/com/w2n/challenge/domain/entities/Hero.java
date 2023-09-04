@@ -3,8 +3,6 @@ package com.w2n.challenge.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Data
 @Entity
 @Builder
@@ -15,7 +13,7 @@ public class Hero {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     private String name;
 
