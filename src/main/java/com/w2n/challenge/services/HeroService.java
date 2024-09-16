@@ -8,14 +8,14 @@ import com.w2n.challenge.domain.repositories.HeroRepository;
 import com.w2n.challenge.exceptions.BadRequestException;
 import com.w2n.challenge.exceptions.ExceptionMessages;
 import com.w2n.challenge.exceptions.NotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;

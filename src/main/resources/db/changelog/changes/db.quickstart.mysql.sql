@@ -7,7 +7,7 @@ CREATE TABLE heroes (
     name VARCHAR(255),
     universe VARCHAR(255),
     primary key (id)
-) engine=InnoDB;
+);
 
 -- changeset manuell:1693848609466-2
 INSERT INTO heroes (id, name, universe, first_apparition) VALUES
