@@ -58,6 +58,7 @@ public class HeroService {
             throw new BadRequestException(ExceptionMessages.HERO_ALREADY_EXISTS);
 
         Hero hero = Hero.builder()
+                .id(UUID.randomUUID().toString())
                 .name(newHeroDTO.getName().trim())
                 .universe(newHeroDTO.getUniverse().trim())
                 .firstApparition(newHeroDTO.getFirstApparition())
